@@ -18,7 +18,7 @@ async function run() {
     
     const leakedNvidia = content.includes("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");
     const leakedOllama = content.includes("30980567d66e4e4daee28951c3c7dd61.arAY7BW--sI5vAT9OTpnk1dR");
-    const leakedGemini = content.includes("AIzaSyABYinJ0rbpnE7QbHe8C5WZLKADRMrGbsw");
+    const leakedGemini = content.includes("AIzaSyABYinJ0rbpnE7QbHe8C5WZLKADRMrGb");
 
     console.log("\n--- Client-side DOM Key Exposure Scan ---");
     if (leakedNvidia) {
