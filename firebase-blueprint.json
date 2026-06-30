@@ -1,0 +1,136 @@
+{
+  "entities": {
+    "User": {
+      "title": "User Profile",
+      "description": "User account details and registration status",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "Unique auth user ID" },
+        "email": { "type": "string", "description": "Account email address" },
+        "displayName": { "type": "string", "description": "Account displayName" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "email"]
+    },
+    "Task": {
+      "title": "Task",
+      "description": "A rescue crisis task",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "notes": { "type": "string" },
+        "dueDate": { "type": "string" },
+        "estimatedMinutes": { "type": "number" },
+        "importance": { "type": "number" },
+        "tags": { "type": "array" },
+        "subtasks": { "type": "array" },
+        "completed": { "type": "boolean" },
+        "userId": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "title", "completed", "userId"]
+    },
+    "Habit": {
+      "title": "Habit",
+      "description": "A recurring habit streak preservation object",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "streak": { "type": "number" },
+        "completedDays": { "type": "array" },
+        "userId": { "type": "string" }
+      },
+      "required": ["id", "name", "streak", "completedDays", "userId"]
+    },
+    "BusyBlock": {
+      "title": "BusyBlock",
+      "description": "A pre-committed blocked hours calendar range",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "label": { "type": "string" },
+        "start": { "type": "string" },
+        "end": { "type": "string" },
+        "userId": { "type": "string" }
+      },
+      "required": ["id", "label", "start", "end", "userId"]
+    },
+    "Prefs": {
+      "title": "Preferences",
+      "description": "API keys and user configurations for the planner app",
+      "type": "object",
+      "properties": {
+        "nvidia_key": { "type": "string" },
+        "ollama_key": { "type": "string" },
+        "gemini_key": { "type": "string" },
+        "selected_model": { "type": "string" },
+        "auto_fallback": { "type": "boolean" },
+        "working_hours_start": { "type": "string" },
+        "working_hours_end": { "type": "string" },
+        "timezone": { "type": "string" },
+        "userId": { "type": "string" }
+      },
+      "required": ["userId"]
+    },
+    "Plan": {
+      "title": "Rescue Plan",
+      "description": "The computed smart plan schedules from LLM heuristics",
+      "type": "object",
+      "properties": {
+        "date": { "type": "string" },
+        "timezone": { "type": "string" },
+        "model_used_label": { "type": "string" },
+        "priorities": { "type": "array" },
+        "nudges": { "type": "array" },
+        "userId": { "type": "string" }
+      },
+      "required": ["userId"]
+    },
+    "NudgeLog": {
+      "title": "Triggered Nudge",
+      "description": "A logged event notification details",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "time": { "type": "string" },
+        "title": { "type": "string" },
+        "body": { "type": "string" },
+        "type": { "type": "string" },
+        "userId": { "type": "string" }
+      },
+      "required": ["id", "time", "title", "body", "type", "userId"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User documents mapping uid details"
+    },
+    "/users/{userId}/tasks/{taskId}": {
+      "schema": "Task",
+      "description": "Tasks subcollection for individual workspace isolation"
+    },
+    "/users/{userId}/habits/{habitId}": {
+      "schema": "Habit",
+      "description": "Streaks and daily habits for workspace isolation"
+    },
+    "/users/{userId}/busyBlocks/{blockId}": {
+      "schema": "BusyBlock",
+      "description": "Pre-committed calendar block hours for workspace isolation"
+    },
+    "/users/{userId}/preferences/main": {
+      "schema": "Prefs",
+      "description": "API credentials and core profile parameters"
+    },
+    "/users/{userId}/plans/current": {
+      "schema": "Plan",
+      "description": "The most recent successfully compiled plan layout"
+    },
+    "/users/{userId}/nudges/{nudgeId}": {
+      "schema": "NudgeLog",
+      "description": "Notification history checklist"
+    }
+  }
+}

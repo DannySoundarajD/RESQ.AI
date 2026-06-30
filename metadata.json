@@ -1,0 +1,6 @@
+{
+  "name": "RESQ.AI",
+  "description": "RESQ.AI - An elite agentic deadline rescue system. Features voice-activated Gemini AI assistance, intelligent task prioritization, locked Pomodoro focus sessions, calendar-exclusion guard rails, and real-time offline replication syncing designed to eliminate procrastination.",
+  "requestFramePermissions": ["notifications"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

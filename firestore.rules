@@ -1,0 +1,157 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Global Safety Net: default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Primitives
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    // Prevents ID Poisoning / Denial of Wallet attacks with giant documents
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // Validation helpers to prevent ghost fields and type poisoning
+    function isValidUser(data) {
+      return data.keys().hasAll(['uid', 'email'])
+        && data.keys().size() <= 5
+        && data.uid == request.auth.uid
+        && data.email is string
+        && data.email.size() <= 256;
+    }
+
+    function isValidTask(data) {
+      return data.keys().hasAll(['id', 'title', 'completed', 'userId'])
+        && data.keys().size() <= 12
+        && data.id is string
+        && data.id.size() <= 128
+        && data.title is string
+        && data.title.size() <= 200
+        && data.completed is bool
+        && data.userId == request.auth.uid;
+    }
+
+    function isValidHabit(data) {
+      return data.keys().hasAll(['id', 'name', 'streak', 'completedDays', 'userId'])
+        && data.keys().size() <= 7
+        && data.id is string
+        && data.id.size() <= 128
+        && data.name is string
+        && data.name.size() <= 200
+        && data.streak is int
+        && data.streak >= 0
+        && data.completedDays is list
+        && data.userId == request.auth.uid;
+    }
+
+    function isValidBusyBlock(data) {
+      return data.keys().hasAll(['id', 'label', 'start', 'end', 'userId'])
+        && data.keys().size() <= 7
+        && data.id is string
+        && data.id.size() <= 128
+        && data.label is string
+        && data.label.size() <= 200
+        && data.start is string
+        && data.start.size() <= 128
+        && data.end is string
+        && data.end.size() <= 128
+        && data.userId == request.auth.uid;
+    }
+
+    function isValidPrefs(data) {
+      return data.keys().hasAll(['userId'])
+        && data.keys().size() <= 10
+        && data.userId == request.auth.uid;
+    }
+
+    function isValidPlan(data) {
+      return data.keys().hasAll(['userId'])
+        && data.keys().size() <= 10
+        && data.userId == request.auth.uid;
+    }
+
+    function isValidNudge(data) {
+      return data.keys().hasAll(['id', 'time', 'title', 'body', 'type', 'userId'])
+        && data.keys().size() <= 8
+        && data.id is string
+        && data.id.size() <= 128
+        && data.time is string
+        && data.time.size() <= 128
+        && data.title is string
+        && data.title.size() <= 200
+        && data.body is string
+        && data.body.size() <= 1000
+        && data.type is string
+        && data.type.size() <= 50
+        && data.userId == request.auth.uid;
+    }
+
+    // Rules matching
+    match /users/{userId} {
+      allow get: if isOwner(userId);
+      allow create: if isOwner(userId) && isValidUser(incoming());
+      allow update: if isOwner(userId) && isValidUser(incoming()) && incoming().uid == existing().uid;
+      allow delete: if false;
+
+      match /tasks/{taskId} {
+        allow list, get: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidId(taskId) && isValidTask(incoming());
+        allow update: if isOwner(userId) && isValidId(taskId) && isValidTask(incoming()) && incoming().id == existing().id && incoming().userId == existing().userId;
+        allow delete: if isOwner(userId) && isValidId(taskId);
+      }
+
+      match /habits/{habitId} {
+        allow list, get: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidId(habitId) && isValidHabit(incoming());
+        allow update: if isOwner(userId) && isValidId(habitId) && isValidHabit(incoming()) && incoming().id == existing().id && incoming().userId == existing().userId;
+        allow delete: if isOwner(userId) && isValidId(habitId);
+      }
+
+      match /busyBlocks/{blockId} {
+        allow list, get: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidId(blockId) && isValidBusyBlock(incoming());
+        allow update: if isOwner(userId) && isValidId(blockId) && isValidBusyBlock(incoming()) && incoming().id == existing().id && incoming().userId == existing().userId;
+        allow delete: if isOwner(userId) && isValidId(blockId);
+      }
+
+      match /preferences/{prefDocId} {
+        allow list, get: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidId(prefDocId) && isValidPrefs(incoming());
+        allow update: if isOwner(userId) && isValidId(prefDocId) && isValidPrefs(incoming()) && incoming().userId == existing().userId;
+        allow delete: if isOwner(userId) && isValidId(prefDocId);
+      }
+
+      match /plans/{planDocId} {
+        allow list, get: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidId(planDocId) && isValidPlan(incoming());
+        allow update: if isOwner(userId) && isValidId(planDocId) && isValidPlan(incoming()) && incoming().userId == existing().userId;
+        allow delete: if isOwner(userId) && isValidId(planDocId);
+      }
+
+      match /nudges/{nudgeId} {
+        allow list, get: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidId(nudgeId) && isValidNudge(incoming());
+        allow update: if isOwner(userId) && isValidId(nudgeId) && isValidNudge(incoming()) && incoming().id == existing().id && incoming().userId == existing().userId;
+        allow delete: if isOwner(userId) && isValidId(nudgeId);
+      }
+    }
+  }
+}
