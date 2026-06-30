@@ -13,8 +13,9 @@ dotenv.config();
 const app = express();
 app.use(express.json());
 
-// Set default DNS resolution to ipv4 first to avoid localhost connection issues with Node.js 17+
-dns.setDefaultResultOrder("ipv4first");
+if (dns && typeof dns.setDefaultResultOrder === "function") {
+  dns.setDefaultResultOrder("ipv4first");
+}
 
 const PORT = 3000;
 
